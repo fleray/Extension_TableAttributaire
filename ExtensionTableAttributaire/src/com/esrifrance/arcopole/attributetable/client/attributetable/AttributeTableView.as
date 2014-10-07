@@ -150,6 +150,42 @@ package com.esrifrance.arcopole.attributetable.client.attributetable
 								// attributeTable.selectableGraphics.removeAll();
 								attributeTable.selectableGraphics.source = new Array();
 								
+								////  Edit TPM du 17/07/2014 pour l'affichage des dates en FR //// 
+								//Récupère le nom des champs de type date
+								var champsDate:Array=new Array();
+								for each(var fld:Field in featureSet.fields) {
+									if(fld.type==Field.TYPE_DATE) {
+										champsDate.push(fld.name);
+									}
+								}
+																
+								//Transforme les timestamp en date FR
+								for each(var gr:Graphic in featureSet.features) {
+									for each(var fldName:String in champsDate) {
+										var dateToConvert:Date=new Date(gr.attributes[fldName]);
+										var mois:int=dateToConvert.getMonth()+1;
+										var jour:int=dateToConvert.getDate();
+										
+										var jourStr:String;
+										var moisStr:String;
+										if(jour<10) {
+											jourStr="0" + jour.toString();
+										} else {
+											jourStr=jour.toString();
+										}
+										
+										if(mois<10) {
+											moisStr="0" + jour.toString();
+										} else {
+											moisStr=mois.toString();
+										}
+										
+										//On remplace le timestamp par la date fr
+										gr.attributes[fldName]=jourStr + "/" + moisStr + "/" + dateToConvert.getFullYear();
+									}
+								}
+								////Fin Edit TPM  //// 
+								
 								addAllFeaturesInTable(featureSet.features);
 								
 							},
