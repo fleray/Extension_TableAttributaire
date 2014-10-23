@@ -16,4 +16,4 @@ Pour ceux qui souhaitent participer au développement ou installer l'extension, 
 
 4) Relancez arcOpole Studio
 
-L'extension apparait alors dans la liste des fonctionnalités.
+L'extension apparait alors dans la liste des fonctionnalités et, côté application cliente, un nouveau bouton s'affiche dans le menu de sélection à côté de la liste des couches.
