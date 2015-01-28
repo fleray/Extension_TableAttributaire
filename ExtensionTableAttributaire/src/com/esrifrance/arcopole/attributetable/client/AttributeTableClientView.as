@@ -9,6 +9,7 @@ package com.esrifrance.arcopole.attributetable.client
 	import com.esrifrance.fxfmk.components.ComponentInitializerHelper;
 	import com.esrifrance.fxfmk.components.layerlisttoolbar.events.LayerListToolbarEvent;
 	import com.esrifrance.fxfmk.components.layerlisttoolbar.events.SelectionLayerChangeEvent;
+	import com.esrifrance.fxfmk.kernel.data.layers.FxFmkAGSRestTableRefWithEditSupport;
 	import com.esrifrance.fxfmk.kernel.data.layers.LayerRef;
 	import com.esrifrance.fxfmk.kernel.event.ActiveLayerEvent;
 	import com.esrifrance.fxfmk.kernel.service.IComponentEventBus;
@@ -77,7 +78,7 @@ package com.esrifrance.arcopole.attributetable.client
 			//componentEventBus.addEventListener(SelectionLayerChangeEvent.selectionLayerChangedEventName, handleSelectionLayerChange);
 			mapManager.addActiveLayerChangeListener(handleActiveLayerChange);
 			
-			showAttributeTableEventHandler(null);
+			// showAttributeTableEventHandler(null);
 		}
 		
 		
@@ -85,7 +86,7 @@ package com.esrifrance.arcopole.attributetable.client
 		
 		private function handleActiveLayerChange(e:ActiveLayerEvent):void{
 			_tmpActiveLayer = e.layer; 
-			if(attributeTableView != null){
+			if(attributeTableView != null && !(e.layer is FxFmkAGSRestTableRefWithEditSupport)){
 				attributeTableView.loadValuesForLayer(e.layer);
 			}
 		}

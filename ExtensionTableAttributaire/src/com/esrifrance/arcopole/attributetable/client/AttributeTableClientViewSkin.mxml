@@ -7,7 +7,4 @@
 		[HostComponent("com.esrifrance.arcopole.attributetable.client.AttributeTableClientView")]
 	</fx:Metadata>
 	
-	<s:Button label="Open Attribute Form" click="{hostComponent.showAttributeTableEventHandler(null)}"/>
-	
-	
 </s:Skin>

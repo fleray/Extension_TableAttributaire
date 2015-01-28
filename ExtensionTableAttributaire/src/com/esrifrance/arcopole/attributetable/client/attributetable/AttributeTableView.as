@@ -3,27 +3,32 @@ package com.esrifrance.arcopole.attributetable.client.attributetable
 	import com.esri.ags.FeatureSet;
 	import com.esri.ags.Graphic;
 	import com.esri.ags.Map;
+	import com.esri.ags.layers.Layer;
+	import com.esri.ags.layers.supportClasses.Field;
 	import com.esri.ags.layers.supportClasses.LayerDetails;
-	import com.esri.ags.tasks.supportClasses.Query;
 	import com.esrifrance.arcopole.components.selectionmenu.events.SelectionMenuEvent;
 	import com.esrifrance.fxfmk.components.ComponentInitializerHelper;
+	import com.esrifrance.fxfmk.components.assistedQuery.event.AssistedQueryEvent;
 	import com.esrifrance.fxfmk.components.attributeForm.event.AttributeFormEvent;
 	import com.esrifrance.fxfmk.components.attributetable.attributetable.AttributeTableEvent;
 	import com.esrifrance.fxfmk.components.attributetable.attributetable.AttributeTableView;
 	import com.esrifrance.fxfmk.components.attributetable.attributetable.layerlazyloader.LayerLazyLoader;
 	import com.esrifrance.fxfmk.components.attributetable.attributetable.selectablegraphic.SelectableGrahic;
 	import com.esrifrance.fxfmk.kernel.data.layers.AGSRestLayerRef;
+	import com.esrifrance.fxfmk.kernel.data.layers.AGSRestTableRef;
+	import com.esrifrance.fxfmk.kernel.data.layers.FxFmkAGSRestTableRefWithEditSupport;
 	import com.esrifrance.fxfmk.kernel.data.layers.LayerRef;
+	import com.esrifrance.fxfmk.kernel.data.layers.datasource.IDataSource;
 	import com.esrifrance.fxfmk.kernel.data.layers.datasource.IDataSourceLayer;
+	import com.esrifrance.fxfmk.kernel.data.rightmanagement.RightNames;
 	import com.esrifrance.fxfmk.kernel.event.SelectionEvent;
 	import com.esrifrance.fxfmk.kernel.service.IAuthorizedMapData;
 	import com.esrifrance.fxfmk.kernel.service.IComponentEventBus;
 	import com.esrifrance.fxfmk.kernel.service.IConfigManager;
 	import com.esrifrance.fxfmk.kernel.service.IDataTools;
-	import com.esrifrance.fxfmk.kernel.service.IMapData;
 	import com.esrifrance.fxfmk.kernel.service.ISelectionManager;
-	import com.esrifrance.fxfmk.kernel.service.impl.ComponentEventBus;
 	import com.esrifrance.fxfmk.kernel.tools.GeometryTools;
+	import com.esrifrance.fxfmk.kernel.tools.Hashtable;
 	import com.esrifrance.fxfmk.kernel.tools.LoggingUtil;
 	import com.esrifrance.fxfmk.kernel.tools.SelectionTools;
 	
@@ -35,21 +40,17 @@ package com.esrifrance.arcopole.attributetable.client.attributetable
 	import flash.net.navigateToURL;
 	
 	import mx.collections.ArrayCollection;
-	import mx.controls.List;
-	import mx.core.mx_internal;
+	import mx.controls.Alert;
 	import mx.events.ItemClickEvent;
 	import mx.logging.ILogger;
 	import mx.rpc.AsyncResponder;
 	
 	import spark.components.Button;
 	import spark.components.DataGrid;
-	import spark.components.DropDownList;
 	import spark.components.RadioButtonGroup;
 	import spark.components.gridClasses.GridColumn;
-	import spark.components.supportClasses.Skin;
 	import spark.components.supportClasses.SkinnableComponent;
 	import spark.events.GridEvent;
-	import spark.events.IndexChangeEvent;
 
 	public class AttributeTableView extends SkinnableComponent
 	{
@@ -66,10 +67,12 @@ package com.esrifrance.arcopole.attributetable.client.attributetable
 		[Inject] public var mapData:IAuthorizedMapData;
 		[Inject] public var configMgr:IConfigManager;
 		[Inject] public var componentEventBus:IComponentEventBus;
+		[Inject]public var authorizedMapData:IAuthorizedMapData;
 		
 		[Inject] public var dataTools:IDataTools;
 		[Inject] public var map:Map;
 		
+		private static var accents:Hashtable = new Hashtable();
 		
 		public override function initialize():void
 		{
@@ -86,6 +89,48 @@ package com.esrifrance.arcopole.attributetable.client.attributetable
 			percentHeight = 100;
 			percentWidth = 100;
 			this.setStyle("skinClass", AttributeTableViewSkin);
+			
+			// F.LERAY : pour la conversion des accents en html
+			accents.addItem("â", "&acirc;");
+			accents.addItem("à", "&agrave;");
+			accents.addItem("é", "&eacute;");
+			accents.addItem("ê", "&ecirc;");
+			accents.addItem("è", "&egrave;");
+			accents.addItem("ë", "&euml;");
+			accents.addItem("î", "&icirc;");
+			accents.addItem("ï", "&iuml;");
+			accents.addItem("ô", "&ocirc;");
+			accents.addItem("œ", "&oelig;");
+			accents.addItem("û", "&ucirc;");
+			accents.addItem("ù", "&ugrave;");
+			accents.addItem("ü", "&uuml;");
+			accents.addItem("ç", "&ccedil;");
+			accents.addItem("À", "&Agrave;");
+			accents.addItem("Á", "&Aacute;");
+			accents.addItem("Â", "&Atilde;");
+			accents.addItem("Ã", "&Auml;");
+			accents.addItem("Ä", "&Aring;");
+			accents.addItem("Å", "&ccedil;");
+			accents.addItem("Æ", "&AElig;");
+			accents.addItem("Ç", "&Ccedil;");
+			accents.addItem("È", "&Egrave;");
+			accents.addItem("É", "&Eacute;");
+			accents.addItem("É", "&Eacute;");
+			accents.addItem("Ê", "&Ecirc;");
+			accents.addItem("Ë", "&Euml;");
+			accents.addItem("Ì", "&Igrave;");
+			accents.addItem("Í", "&Iacute;");
+			accents.addItem("Î", "&Icirc;");
+			accents.addItem("Ï", "&Iuml;");
+			accents.addItem("Ò", "&Ograve;");
+			accents.addItem("Ó", "&Oacute;");
+			accents.addItem("Ô", "&Ocirc;");
+			accents.addItem("Õ", "&Otilde;");
+			accents.addItem("Ö", "&Ouml;");
+			accents.addItem("Ù", "&Ugrave;");
+			accents.addItem("Ú", "&Uacute;");
+			accents.addItem("Û", "&Ucirc;");
+			accents.addItem("Ü", "&Uuml;");
 		}
 
 		
@@ -106,7 +151,7 @@ package com.esrifrance.arcopole.attributetable.client.attributetable
 			
 			selectionManager.addSelectionChangeListener(handleSelectionChange);
 			
-			if(tmpLayer != null) loadValuesForLayer(tmpLayer);
+			if(tmpLayer != null && !(tmpLayer is FxFmkAGSRestTableRefWithEditSupport)) loadValuesForLayer(tmpLayer);
 			
 		}
 		
@@ -127,7 +172,7 @@ package com.esrifrance.arcopole.attributetable.client.attributetable
 			var layerDetails:LayerDetails = dataTools.getLayerDetails(lref as AGSRestLayerRef);
 			// = layerDetails.fields;
 			
-			var dataSource:IDataSourceLayer = mapData.createDataSource(lref);
+			var dataSource:IDataSource = mapData.createDataSource(lref);
 						
 			_currentLayerLazyLoader = new LayerLazyLoader();
 			
@@ -148,43 +193,7 @@ package com.esrifrance.arcopole.attributetable.client.attributetable
 								
 								// performance tip : create a new source is more efficient than removeall, and no leak
 								// attributeTable.selectableGraphics.removeAll();
-								attributeTable.selectableGraphics.source = new Array();
-								
-								////  Edit TPM du 17/07/2014 pour l'affichage des dates en FR //// 
-								//Récupère le nom des champs de type date
-								var champsDate:Array=new Array();
-								for each(var fld:Field in featureSet.fields) {
-									if(fld.type==Field.TYPE_DATE) {
-										champsDate.push(fld.name);
-									}
-								}
-																
-								//Transforme les timestamp en date FR
-								for each(var gr:Graphic in featureSet.features) {
-									for each(var fldName:String in champsDate) {
-										var dateToConvert:Date=new Date(gr.attributes[fldName]);
-										var mois:int=dateToConvert.getMonth()+1;
-										var jour:int=dateToConvert.getDate();
-										
-										var jourStr:String;
-										var moisStr:String;
-										if(jour<10) {
-											jourStr="0" + jour.toString();
-										} else {
-											jourStr=jour.toString();
-										}
-										
-										if(mois<10) {
-											moisStr="0" + jour.toString();
-										} else {
-											moisStr=mois.toString();
-										}
-										
-										//On remplace le timestamp par la date fr
-										gr.attributes[fldName]=jourStr + "/" + moisStr + "/" + dateToConvert.getFullYear();
-									}
-								}
-								////Fin Edit TPM  //// 
+								attributeTable.selectableGraphics.source = [];
 								
 								addAllFeaturesInTable(featureSet.features);
 								
@@ -247,6 +256,10 @@ package com.esrifrance.arcopole.attributetable.client.attributetable
 		}
 		
 		private function loadAllDataR():void {
+			if(_currentLayerLazyLoader == null)
+			{
+				return;
+			}
 			if(_currentLayerLazyLoader.hasNext()){
 				_log.debug("Still loading");
 				_currentLayerLazyLoader.next(new AsyncResponder(
@@ -375,8 +388,55 @@ package com.esrifrance.arcopole.attributetable.client.attributetable
 				_log.debug("attributeTableEventSelectionChangeHandler : unselect graphic " + selectableGraphic.graphic);
 				selectionManager.removeFromSelection(currentLayerRef as AGSRestLayerRef, [selectableGraphic.graphic]);
 			}
+			
+			// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+			// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+			// F.Leray 22/12/2014
+			// START Fix. to force the columns recomputation (to display the ResultsView list) 
+
+			// Show results - dispatch event ASSISTED_QUERY_RESULTS with results
+			// (Take displayfield)
+			var ld:LayerDetails = dataTools.getLayerDetails(currentLayerRef as AGSRestLayerRef);
+			
+			// Check if display field appears in results (if not -> display field not authorized for user)		
+			var field:String = null;
+			
+			if (ld.displayField != null)
+			{
+				for (var fldName:String in selectableGraphic.graphic.attributes)
+				{
+					if (fldName.toLowerCase() == ld.displayField.toLowerCase())
+					{
+						field = ld.displayField;
+						break;
+					}
+				}
+			}
+			
+			if (field == null)
+			{
+				for each  (var f:Field in ld.fields)
+				{
+					if (f.type == Field.TYPE_OID)
+					{
+						field = f.name;
+						break;
+					}
+				}
+				// Display field not found in results
+				_log.info("DisplayField not found, use object id");
+			}
+			
+			// F.Leray 22/12/2014
+			// END Fix. to force the columns recomputation (to display the ResultsView list)
+			// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+			// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+			
 			this.componentEventBus.dispatchEvent(
-				new SelectionMenuEvent(SelectionMenuEvent.SHOW_SELECTION_OR_RESULTS, SelectionMenuEvent.RESULTS_UI));
+				new AssistedQueryEvent(AssistedQueryEvent.ASSISTED_QUERY_RESULTS, currentLayerRef as AGSRestTableRef, new Array(), [field], true));		
+			
+			/*this.componentEventBus.dispatchEvent(
+				new SelectionMenuEvent(SelectionMenuEvent.SHOW_SELECTION_OR_RESULTS, SelectionMenuEvent.RESULTS_UI));*/
 			
 		}
 		
@@ -404,6 +464,23 @@ package com.esrifrance.arcopole.attributetable.client.attributetable
 		{
 			
 			_log.debug("Exporting to Excel");
+			// verification des droits de l'utilisateur
+			var layerRef:AGSRestLayerRef = tmpLayer as AGSRestLayerRef;
+			var l:Layer =  authorizedMapData.getMapServiceById(layerRef.mapservice.id);
+			
+			if (l !=null){
+				var r:String = authorizedMapData.getRightForMapServiceLayer(l, RightNames.EXPORT, "false");
+			}
+			
+			
+			if (r!="true") 
+			{
+				_log.debug("Failed to export => No Right to export");
+				Alert.show("Vous n'avez pas le droit d'exporter la couche...", "Export de données :");
+				return;
+			}
+			_log.debug("Ok to export data");
+			
 			//Prepare request
 			var url:String = configMgr.applicationURL + "/exportexcel";
 			
@@ -428,8 +505,10 @@ package com.esrifrance.arcopole.attributetable.client.attributetable
 			for each (var item:Object in dg.dataProvider) {
 				str += "<tr>";
 				for each (var column:GridColumn in this.attributeTable.attributeTableDataGrid.columns) {
-					if(column.visible)				
-						str += "<td>" + column.itemToLabel(item) + "</td>";
+					if(column.visible)
+					{			
+						str += "<td>" + stringReplaceAccents(column.itemToLabel(item)) + "</td>";
+					}
 				}
 				str += "</tr>";
 			}
@@ -437,6 +516,24 @@ package com.esrifrance.arcopole.attributetable.client.attributetable
 			return str;
 		}
 		
+		private static function stringReplaceAccents( source:String ) : String
+		{
+			
+			if(null != source)
+			{
+				for each(var accent:String in accents.getAllKeys())
+				{
+					source =stringReplaceAll(source, accent, accents.getItem(accent));
+				}
+			}
+			
+			return source;
+		}
+		
+		private static function stringReplaceAll( source:String, find:String, replacement:String ) : String
+		{
+			return source.split( find ).join( replacement );
+		}
 		
 		////////////////////////////////////////////////////////////
 		///

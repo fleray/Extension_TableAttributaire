@@ -11,6 +11,7 @@ package com.esrifrance.fxfmk.components.attributetable.attributetable
 	import mx.collections.IList;
 	import mx.controls.advancedDataGridClasses.AdvancedDataGridColumn;
 	import mx.core.ClassFactory;
+	import mx.formatters.DateFormatter;
 	import mx.logging.ILogger;
 	import mx.logging.Log;
 	
@@ -29,11 +30,14 @@ package com.esrifrance.fxfmk.components.attributetable.attributetable
 		
 		private static const _COLUMN_DEFAULT_WIDTH:Number = 150;
 		private static const _SELECTION_COLUMN_DEFAULT_WIDTH:Number = 50;
+		private static var _DATE_FORMATTER;
 		
 		
 		public function AttributeTableView()
 		{
 			super();
+			_DATE_FORMATTER = new DateFormatter();
+			_DATE_FORMATTER.formatString = "MM/DD/YYYY";
 		}
 		
 		///////////////////////////////////////////////////////////////////////////
@@ -76,7 +80,11 @@ package com.esrifrance.fxfmk.components.attributetable.attributetable
 			}
 		}
 		
-		
+			
+		private function dateFormatLabelFunction( item:Object, column:GridColumn ):String 
+		{ 
+			return _DATE_FORMATTER.format(new Date((item.graphic.attributes[column.dataField]) as Number));
+		}
 		
 		/**
 		 *	Reload the datagrid columns function of fields 
@@ -105,6 +113,12 @@ package com.esrifrance.fxfmk.components.attributetable.attributetable
 				dgc.labelFunction = fieldLabelFunction;
 				dgc.width = _COLUMN_DEFAULT_WIDTH;
 				dgc.resizable = true;
+				
+				if(f.type === Field.TYPE_DATE)
+				{
+					dgc.labelFunction = dateFormatLabelFunction;
+				}
+				
 				newColumns.addItem(dgc);
 			}
 			
